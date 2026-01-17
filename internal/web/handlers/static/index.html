@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Ink 6-Color Image Processor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>E-Ink 6-Color Image Processor</h1>
+            <p>Convert images to 6-color E-Ink palette with Floyd-Steinberg dithering</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p class="upload-text">Drag & drop an image here or click to browse</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+            </section>
+
+            <!-- Image Preview Section -->
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <div class="orientation-toggle">
+                    <button id="orientationBtn" class="btn btn-small" title="Switch orientation">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        </svg>
+                        <span id="orientationLabel">800×480</span>
+                    </button>
+                </div>
+                <div class="image-container">
+                    <div class="image-box with-crop">
+                        <h3>Original (Drag to Crop)</h3>
+                        <div class="image-crop-container" id="cropContainer">
+                            <img id="originalImage" alt="Original image">
+                            <div class="crop-overlay" id="cropOverlay">
+                                <div class="crop-border" id="cropBorder">
+                                    <div class="crop-size-info" id="cropSizeInfo"></div>
+                                    <div class="crop-handle nw" data-handle="nw"></div>
+                                    <div class="crop-handle ne" data-handle="ne"></div>
+                                    <div class="crop-handle sw" data-handle="sw"></div>
+                                    <div class="crop-handle se" data-handle="se"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="image-info" id="originalInfo"></div>
+                    </div>
+                    <div class="image-box">
+                        <h3>E-Ink Preview</h3>
+                        <img id="previewImage" alt="E-Ink preview">
+                        <div class="image-info" id="previewInfo"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controls Section -->
+            <section class="controls-section" id="controlsSection" style="display: none;">
+                <h2>Adjustments</h2>
+                <div class="controls-grid">
+                    <!-- Resolution Preset -->
+                    <div class="control-group">
+                        <label>Resolution</label>
+                        <select id="resolutionPreset">
+                            <option value="800x480">800 x 480 (Landscape)</option>
+                            <option value="480x800">480 x 800 (Portrait)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    <!-- Output Format (BMP only for E-Ink) -->
+                    <div class="control-group">
+                        <label>Output Format</label>
+                        <select id="outputFormat" disabled>
+                            <option value="bmp">BMP (24-bit) - E-Ink Display</option>
+                        </select>
+                    </div>
+
+                    <!-- Width/Height (for custom) -->
+                    <div class="control-group">
+                        <label>Width (px)</label>
+                        <input type="number" id="widthInput" value="800" min="1">
+                    </div>
+                    <div class="control-group">
+                        <label>Height (px)</label>
+                        <input type="number" id="heightInput" value="480" min="1">
+                    </div>
+
+                    <!-- Brightness -->
+                    <div class="control-group">
+                        <label>Brightness: <span id="brightnessValue">0</span></label>
+                        <input type="range" id="brightnessSlider" min="-1" max="1" step="0.05" value="0">
+                    </div>
+
+                    <!-- Contrast -->
+                    <div class="control-group">
+                        <label>Contrast: <span id="contrastValue">1.0</span></label>
+                        <input type="range" id="contrastSlider" min="0" max="2" step="0.05" value="1">
+                    </div>
+
+                    <!-- Saturation -->
+                    <div class="control-group">
+                        <label>Saturation: <span id="saturationValue">1.0</span></label>
+                        <input type="range" id="saturationSlider" min="0" max="2" step="0.05" value="1">
+                    </div>
+
+                    <!-- Dither Toggle -->
+                    <div class="control-group">
+                        <label>Dithering</label>
+                        <label class="toggle">
+                            <input type="checkbox" id="ditherToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Enhancement Mode -->
+                    <div class="control-group">
+                        <label>Enhancement Mode</label>
+                        <select id="enhancerSelect">
+                            <option value="">Basic (use sliders)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="updateBtn" class="btn btn-primary">Update Preview</button>
+                    <button id="uploadBtn" class="btn btn-success">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Push to Screen
+                    </button>
+                </div>
+            </section>
+
+            <!-- Processing Steps Visualization -->
+            <section class="steps-section" id="stepsSection" style="display: none;">
+                <h2>Processing Pipeline</h2>
+                <div class="steps-container" id="stepsContainer"></div>
+            </section>
+
+            <!-- Remote URL Section -->
+            <section class="remote-section" id="remoteSection" style="display: none;">
+                <h3>Remote Display URL</h3>
+                <input type="text" id="remoteUrlInput" value="http://192.168.4.1/dataUP" placeholder="Remote display URL">
+            </section>
+
+            <!-- Loading Indicator -->
+            <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                <div class="spinner"></div>
+                <p>Processing...</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>6-Color E-Ink Palette: Black, White, Red, Green, Blue, Yellow</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

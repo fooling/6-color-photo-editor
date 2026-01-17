@@ -1,0 +1,31 @@
+# Build artifacts
+/build/
+/dist/
+6-color-editor
+6-color-editor.exe
+
+# Test coverage
+coverage.out
+coverage.html
+*.out
+
+# Go specific
+*.exe
+*.test
+*.prof
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
