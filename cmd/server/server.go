@@ -27,10 +27,20 @@ var serverCmd = &cobra.Command{
 	Long: `Start a web server with an interactive UI for E-Ink image processing.
 
 Features:
-- Split view: Original vs E-Ink preview
-- Live adjustments: Saturation, Contrast, Brightness sliders
-- Step visualization: See intermediate processing results
-- Direct upload to E-Ink display`,
+- Split view: original vs E-Ink preview
+- Live adjustments: saturation, contrast, brightness sliders
+- Step visualization: see each stage of the processing pipeline
+- Direct upload to the configured E-Ink display
+
+Press Ctrl+C to stop the server.`,
+	Example: `  # Start on the default port (3000)
+  eink-6color server
+
+  # Custom host and port
+  eink-6color server --host 127.0.0.1 --port 8080
+
+  # Pre-fill the UI's target device URL
+  eink-6color server --remote-url http://192.168.4.1/dataUP`,
 	RunE: runServer,
 }
 

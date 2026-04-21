@@ -30,11 +30,19 @@ var convertCmd = &cobra.Command{
 	Short: "Convert an image to 6-color E-Ink format",
 	Long: `Convert an image to the 6-color E-Ink palette with optional dithering.
 
-Supports file path or stdin pipe (use "-" as filename).
-Examples:
-  eink-convert convert photo.jpg -o output.bmp
-  cat photo.jpg | eink-convert convert - -o output.bmp
-  eink-convert convert photo.jpg --width 800 --height 480 --upload`,
+The input is read from a file path, or from stdin when "-" is used as the
+filename. The output is a PNG palette-quantized to the 6 display colors;
+when --upload is given, the processed image is also encoded to BMP and
+POSTed to the configured device URL.`,
+	Example: `  # Basic file conversion to 800x480 PNG
+  eink-6color convert photo.jpg -o output.png -W 800 -H 480
+
+  # Read from stdin
+  cat photo.jpg | eink-6color convert - -o output.png -W 800 -H 480
+
+  # Convert and push to a device
+  eink-6color convert photo.jpg -W 800 -H 480 \
+    --upload --remote http://192.168.4.1/dataUP`,
 	Args: cobra.ExactArgs(1),
 	RunE: runConvert,
 }
