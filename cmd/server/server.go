@@ -47,7 +47,7 @@ Press Ctrl+C to stop the server.`,
 func init() {
 	serverCmd.Flags().IntVarP(&port, "port", "p", 3000, "Server port")
 	serverCmd.Flags().StringVarP(&host, "host", "H", "0.0.0.0", "Server host")
-	serverCmd.Flags().StringVar(&remoteURL, "remote-url", "http://127.0.0.1:8080/esp/dataUP", "Default remote display URL")
+	serverCmd.Flags().StringVar(&remoteURL, "remote-url", "http://127.0.0.1/dataUP", "Default remote display URL")
 }
 
 func runServer(cmd *cobra.Command, args []string) error {

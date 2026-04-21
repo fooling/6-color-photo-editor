@@ -50,6 +50,7 @@ class EInkProcessor {
         // Buttons
         this.updateBtn = document.getElementById('updateBtn');
         this.uploadBtn = document.getElementById('uploadBtn');
+        this.uploadProtocolSelect = document.getElementById('uploadProtocolSelect');
 
         // Setup event listeners
         this.setupEventListeners();
@@ -687,7 +688,8 @@ class EInkProcessor {
                 saturation: parseFloat(this.saturationSlider.value),
                 dither: this.ditherToggle.checked,
                 enhancerName: this.enhancerSelect.value,
-                remoteUrl: this.remoteUrlInput.value || null
+                remoteUrl: this.remoteUrlInput.value || null,
+                protocol: this.uploadProtocolSelect ? this.uploadProtocolSelect.value : 'sta'
             };
 
             const response = await fetch('/api/upload', {

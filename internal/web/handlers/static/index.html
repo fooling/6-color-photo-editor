@@ -132,6 +132,11 @@
 
                 <div class="button-group">
                     <button id="updateBtn" class="btn btn-primary">Update Preview</button>
+                    <select id="uploadProtocolSelect" title="Upload protocol — pick one that matches your device firmware">
+                        <option value="sta" selected>STA (fw &ge;1.2.0)</option>
+                        <option value="ap">AP (fw &ge;1.2.0)</option>
+                        <option value="legacy">Legacy (pre-1.2.0 fw)</option>
+                    </select>
                     <button id="uploadBtn" class="btn btn-success">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

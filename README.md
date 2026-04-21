@@ -75,7 +75,7 @@ Run `./build/eink-6color --help` for the full list. Highlights:
 |---|---|---|---|
 | `--port` | `-p` | `3000` | Port to listen on |
 | `--host` | `-H` | `0.0.0.0` | Interface to bind |
-| `--remote-url` |  | `http://127.0.0.1:8080/esp/dataUP` | Default upload target pre-filled in the UI |
+| `--remote-url` |  | `http://127.0.0.1/dataUP` | Default upload target pre-filled in the UI |
 
 ### `convert [input-file]`
 
@@ -88,7 +88,7 @@ Run `./build/eink-6color --help` for the full list. Highlights:
 | `--saturation` |  | `1.0` | 0.0 .. 2.0+ |
 | `--dither` | `-d` | `true` | Floyd–Steinberg on/off |
 | `--upload` | `-u` | `false` | POST result to `--remote` after converting |
-| `--remote` | `-r` | `http://127.0.0.1:8080/esp/dataUP` | Upload target |
+| `--remote` | `-r` | `http://127.0.0.1/dataUP` | Upload target |
 | `--output` | `-o` | *(stdout)* | Output PNG path |
 
 Pass `-` as the input file to read from stdin.
@@ -97,14 +97,14 @@ Pass `-` as the input file to read from stdin.
 
 ## E-Ink device side (what the uploader sends)
 
-The uploader POSTs the processed frame to the configured URL:
+The uploader POSTs the processed frame to the configured URL. The wire format matches the Waveshare 1.4.0 firmware:
 
 - **Method:** `POST`
-- **Content-Type:** `image/bmp`
-- **Body:** standard 24-bit BMP, bottom-up BGR rows, 4-byte row padding
+- **Content-Type:** `application/octet-stream`
+- **Body:** 1 network-mode byte (`0x01` = STA) followed by a 24-bit BMP (bottom-up BGR rows, 4-byte row padding)
 - **Expected response:** HTTP 200 (any non-200 is treated as failure and the body is logged)
 
-Your firmware needs to accept that request on whatever path you point the editor at (`/dataUP` is the common convention). The request also includes browser-ish `Accept` / `Accept-Language` headers — some minimal ESP32 HTTP servers are picky about these, so it's worth checking your server logs if uploads fail.
+Your firmware needs to accept that request on whatever path you point the editor at (`/dataUP` for 1.4.0 and newer; pre-1.4.0 used `/esp/dataUP` and raw `image/bmp` — those are not supported by this build). The client always sends `0x01` (STA); AP (`0x00`) is not supported.
 
 ---
 

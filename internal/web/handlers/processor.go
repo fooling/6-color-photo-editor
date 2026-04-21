@@ -73,6 +73,11 @@ type UploadRequest struct {
 	Dither       bool    `json:"dither"`
 	EnhancerName string  `json:"enhancerName"` // enhancer to use (empty = basic with sliders)
 	RemoteURL    string  `json:"remoteUrl,omitempty"`
+	// Protocol selects the upload wire format:
+	//   "" or "sta"  -> new-firmware STA (default)
+	//   "ap"         -> new-firmware AP
+	//   "legacy"     -> pre-1.2.0 firmware
+	Protocol string `json:"protocol,omitempty"`
 }
 
 // UploadResponse represents an upload API response
@@ -229,16 +234,32 @@ func (r *Registry) handleUpload(w http.ResponseWriter, req *http.Request) {
 		finalImg = rotateImageRight(finalImg)
 	}
 
-	// Get uploader
+	// Pick protocol (zero value = ProtocolNewSTA).
+	protocol, protocolLabel, err := parseProtocol(uploadReq.Protocol)
+	if err != nil {
+		respondJSON(w, UploadResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, http.StatusBadRequest)
+		return
+	}
+
+	// Build a per-request uploader when the client overrides either the
+	// target URL or the protocol; otherwise reuse the registry default.
 	upldr := r.uploader
 	targetURL := "default"
-	if uploadReq.RemoteURL != "" {
+	if uploadReq.RemoteURL != "" || protocol != uploader.ProtocolNewSTA {
 		targetURL = uploadReq.RemoteURL
+		if targetURL == "" {
+			targetURL = "default"
+		}
 		upldr = uploader.NewUploader(&uploader.Config{
 			RemoteURL: uploadReq.RemoteURL,
 			Timeout:   30 * time.Second,
+			Protocol:  protocol,
 		})
 	}
+	log.Printf("Upload protocol: %s", protocolLabel)
 
 	// Log upload info
 	log.Printf("Uploading to: %s", targetURL)
@@ -276,6 +297,21 @@ func (r *Registry) handleHealth(w http.ResponseWriter, req *http.Request) {
 		"status": "healthy",
 		"time":   time.Now().Format(time.RFC3339),
 	}, http.StatusOK)
+}
+
+// parseProtocol maps the UI string to an uploader.Protocol. Empty / unknown
+// strings are rejected rather than silently falling back, so a typo surfaces.
+func parseProtocol(s string) (uploader.Protocol, string, error) {
+	switch s {
+	case "", "sta":
+		return uploader.ProtocolNewSTA, "new-STA (fw >=1.2.0)", nil
+	case "ap":
+		return uploader.ProtocolNewAP, "new-AP (fw >=1.2.0)", nil
+	case "legacy":
+		return uploader.ProtocolLegacy, "legacy (pre-1.2.0 firmware)", nil
+	default:
+		return 0, "", fmt.Errorf("unknown protocol %q (want sta, ap, legacy)", s)
+	}
 }
 
 // respondJSON writes a JSON response

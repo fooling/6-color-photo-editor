@@ -55,7 +55,7 @@ func init() {
 	convertCmd.Flags().Float64Var(&saturation, "saturation", 1.0, "Saturation adjustment (0.0 to 2.0+)")
 	convertCmd.Flags().BoolVarP(&dither, "dither", "d", true, "Enable Floyd-Steinberg dithering")
 	convertCmd.Flags().BoolVarP(&upload, "upload", "u", false, "Upload to remote display after processing")
-	convertCmd.Flags().StringVarP(&remoteURL, "remote", "r", "http://127.0.0.1:8080/esp/dataUP", "Remote display URL")
+	convertCmd.Flags().StringVarP(&remoteURL, "remote", "r", "http://127.0.0.1/dataUP", "Remote display URL")
 	convertCmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output file (PNG format, omit for stdout)")
 }
 
