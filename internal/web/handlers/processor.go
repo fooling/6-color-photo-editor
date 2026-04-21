@@ -217,6 +217,18 @@ func (r *Registry) handleUpload(w http.ResponseWriter, req *http.Request) {
 
 	result := pipeline.ProcessWithConfig(img, config, false)
 
+	// Rotate portrait images (480x800) to landscape (800x480)
+	finalImg := result.Final
+	bounds := finalImg.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	// Check if image is portrait (480x800)
+	if width == 480 && height == 800 {
+		log.Printf("Portrait image detected (480x800), rotating 90 degrees clockwise to landscape")
+		finalImg = rotateImageRight(finalImg)
+	}
+
 	// Get uploader
 	upldr := r.uploader
 	targetURL := "default"
@@ -230,10 +242,18 @@ func (r *Registry) handleUpload(w http.ResponseWriter, req *http.Request) {
 
 	// Log upload info
 	log.Printf("Uploading to: %s", targetURL)
-	log.Printf("Image size: %dx%d", result.Final.Bounds().Dx(), result.Final.Bounds().Dy())
+	finalBounds := finalImg.Bounds()
+	finalWidth := finalBounds.Dx()
+	finalHeight := finalBounds.Dy()
+	log.Printf("Image size: %dx%d", finalWidth, finalHeight)
+
+	// Log rotation info
+	if width == 480 && height == 800 {
+		log.Printf("Rotated from portrait (480x800) to landscape (800x480)")
+	}
 
 	// Upload
-	if err := upldr.Upload(result.Final); err != nil {
+	if err := upldr.Upload(finalImg); err != nil {
 		log.Printf("Upload error: %v", err)
 		respondJSON(w, UploadResponse{
 			Success: false,
@@ -420,3 +440,26 @@ const (
 	bmpHeaderSize = 14
 	bmpInfoSize   = 40
 )
+
+// rotateImageRight rotates an image 90 degrees clockwise.
+// For a 480x800 portrait image, this produces an 800x480 landscape image.
+func rotateImageRight(img image.Image) image.Image {
+	bounds := img.Bounds()
+	w := bounds.Dx()
+	h := bounds.Dy()
+
+	// Create new image with swapped dimensions
+	rotated := image.NewRGBA(image.Rect(0, 0, h, w))
+
+	// Rotate: new(x, y) = old(h-1-y, x)
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			// Source pixel (x, y) -> Destination (h-1-y, x)
+			newX := h - 1 - y
+			newY := x
+			rotated.Set(newX, newY, img.At(x, y))
+		}
+	}
+
+	return rotated
+}

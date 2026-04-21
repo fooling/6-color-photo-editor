@@ -19,6 +19,7 @@ import (
 	"encoding/binary"
 	"image"
 	"image/color"
+	"log"
 
 	"github.com/fooling/6-color-editor/internal/core/palette"
 )
@@ -72,6 +73,16 @@ func (e *EInk) Encode(img image.Image) ([]byte, error) {
 			data[4+y*width+x] = byte(idx)
 		}
 	}
+
+	log.Printf("[Encoder] Encoded %dx%d image, total %d bytes", width, height, len(data))
+	log.Printf("[Encoder] Header: width=%d, height=%d", binary.BigEndian.Uint16(data[0:2]), binary.BigEndian.Uint16(data[2:4]))
+	// Log first 16 bytes of pixel data for debugging
+	pixelDataLen := len(data) - 4
+	previewLen := 16
+	if pixelDataLen < previewLen {
+		previewLen = pixelDataLen
+	}
+	log.Printf("[Encoder] First %d bytes of pixel data: %v", previewLen, data[4:4+previewLen])
 
 	return data, nil
 }

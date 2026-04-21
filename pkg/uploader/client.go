@@ -78,8 +78,16 @@ func NewClient(config *Config) *Client {
 //   data, _ := encoder.NewEInk().Encode(img)
 //   err := client.Upload(data)
 func (c *Client) Upload(data []byte) error {
-	log.Printf("[Uploader] Starting upload to: %s", c.remoteURL)
-	log.Printf("[Uploader] Data size: %d bytes", len(data))
+	log.Printf("[Uploader] ========================================")
+	log.Printf("[Uploader] HTTP Request Details:")
+	log.Printf("[Uploader]   Method: POST")
+	log.Printf("[Uploader]   URL: %s", c.remoteURL)
+	log.Printf("[Uploader]   Content-Length: %d bytes", len(data))
+	log.Printf("[Uploader] Request Headers:")
+	log.Printf("[Uploader]   Content-Type: image/bmp")
+	log.Printf("[Uploader]   Accept: */*")
+	log.Printf("[Uploader]   Accept-Encoding: gzip, deflate")
+	log.Printf("[Uploader]   Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
 
 	req, err := http.NewRequest("POST", c.remoteURL, bytes.NewReader(data))
 	if err != nil {
@@ -87,9 +95,14 @@ func (c *Client) Upload(data []byte) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", "image/bmp")
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
 
+	log.Printf("[Uploader] ----------------------------------------")
 	log.Printf("[Uploader] Sending request...")
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Printf("[Uploader] Request failed: %v", err)
@@ -97,15 +110,32 @@ func (c *Client) Upload(data []byte) error {
 	}
 	defer resp.Body.Close()
 
-	log.Printf("[Uploader] Response status: %d", resp.StatusCode)
+	log.Printf("[Uploader] Response Status:")
+	log.Printf("[Uploader]   Status: %d %s", resp.StatusCode, resp.Status)
+	log.Printf("[Uploader] Response Headers:")
+	for key, values := range resp.Header {
+		for _, value := range values {
+			log.Printf("[Uploader]   %s: %s", key, value)
+		}
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		log.Printf("[Uploader] Error response body: %s", string(body))
+		log.Printf("[Uploader] Error Response Body (%d bytes):", len(body))
+		log.Printf("[Uploader]   %s", string(body))
+		log.Printf("[Uploader] ========================================")
 		return fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("[Uploader] Response Body (%d bytes):", len(body))
+	if len(body) > 0 {
+		log.Printf("[Uploader]   %s", string(body))
+	} else {
+		log.Printf("[Uploader]   (empty)")
+	}
 	log.Printf("[Uploader] Upload successful!")
+	log.Printf("[Uploader] ========================================")
 	return nil
 }
 

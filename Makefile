@@ -34,17 +34,17 @@ build: $(PLATFORMS)
 $(PLATFORMS):
 	@echo "Building $@..."
 	@mkdir -p $(DIST_DIR)
-	@$(eval GOOS=$(shell echo "$@" | cut -d/ -f1); \
-		GOARCH=$(shell echo "$@" | cut -d/ -f2); \
-		if [ "$(GOOS)/$(GOARCH)" = "linux/amd64" ]; then \
-			OUTPUT="$(DIST_DIR)/$(BINARY_NAME)"; \
-		elif [ "$(GOOS)/$(GOARCH)" = "linux/arm64" ]; then \
-			OUTPUT="$(DIST_DIR)/$(BINARY_NAME)-arm64"; \
-		else \
-			OUTPUT="$(DIST_DIR)/$(BINARY_NAME)-$(shell echo "$@" | tr / -)"; \
-		fi; \
-		echo "Output: $$OUTPUT"; \
-		$(GOBUILD) $(LDFLAGS) -trimpath -o "$$OUTPUT" ./main.go)
+	@$(eval GOOS=$(shell echo "$@" | cut -d/ -f1))
+	@$(eval GOARCH=$(shell echo "$@" | cut -d/ -f2))
+	@if [ "$(GOOS)/$(GOARCH)" = "linux/amd64" ]; then \
+		OUTPUT="$(DIST_DIR)/$(BINARY_NAME)"; \
+	elif [ "$(GOOS)/$(GOARCH)" = "linux/arm64" ]; then \
+		OUTPUT="$(DIST_DIR)/$(BINARY_NAME)-arm64"; \
+	else \
+		OUTPUT="$(DIST_DIR)/$(BINARY_NAME)-$(shell echo "$@" | tr / -)"; \
+	fi; \
+	echo "Output: $$OUTPUT"; \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -trimpath -o "$$OUTPUT" ./main.go
 	@if [ "$(shell echo "$@" | cut -d/ -f1)" = "windows" ]; then \
 		mv "$(DIST_DIR)/$(BINARY_NAME)-$(shell echo "$@" | tr / -)" \
 		   "$(DIST_DIR)/$(BINARY_NAME)-$(shell echo "$@" | tr / -).exe"; \

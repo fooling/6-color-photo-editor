@@ -138,7 +138,12 @@ func ProcessWithConfig(img image.Image, config *ProcessConfig, captureSteps bool
 
 	// 1. Crop first (if specified)
 	if config.CropWidth > 0 && config.CropHeight > 0 {
+		// Use user-specified crop rectangle
 		p.AddFilter(NewCropFilter(config.CropX, config.CropY, config.CropWidth, config.CropHeight))
+	} else if config.Width > 0 && config.Height > 0 {
+		// No crop specified, but target dimensions provided.
+		// Crop to target aspect ratio first (center crop), matching frontend behavior.
+		p.AddFilter(NewCropToAspectFilter(config.Width, config.Height))
 	}
 
 	// 2. Resize to target dimensions

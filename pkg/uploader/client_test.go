@@ -59,8 +59,8 @@ func TestClient_Upload_Success(t *testing.T) {
 			t.Errorf("Expected POST method, got %s", r.Method)
 		}
 
-		if r.Header.Get("Content-Type") != "application/octet-stream" {
-			t.Errorf("Expected Content-Type application/octet-stream, got %s", r.Header.Get("Content-Type"))
+		if r.Header.Get("Content-Type") != "image/bmp" {
+			t.Errorf("Expected Content-Type image/bmp, got %s", r.Header.Get("Content-Type"))
 		}
 
 		w.WriteHeader(http.StatusOK)
